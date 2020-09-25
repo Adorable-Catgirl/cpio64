@@ -1151,6 +1151,8 @@ stat_to_cpio (struct cpio_file_stat *hdr, struct stat *st)
       hdr->c_rdev_min = 0;
     }
   hdr->c_mtime = st->st_mtime;
+  hdr->c_atime = st->st_atime;
+  hdr->c_ctime = st->st_ctime;
   hdr->c_filesize = st->st_size;
   hdr->c_chksum = 0;
   hdr->c_tar_linkname = NULL;
@@ -1227,6 +1229,8 @@ fchmod_or_chmod (int fd, const char *name, mode_t mode)
 void
 set_perms (int fd, struct cpio_file_stat *header)
 {
+  if (header->c_atime == 0)
+    header->c_atime = header->c_mtime;
   if (!no_chown_flag)
     {
       uid_t uid = CPIO_UID (header->c_uid);
@@ -1239,7 +1243,7 @@ set_perms (int fd, struct cpio_file_stat *header)
   if (fchmod_or_chmod (fd, header->c_name, header->c_mode) < 0)
     chmod_error_details (header->c_name, header->c_mode);
   if (retain_time_flag)
-    set_file_times (fd, header->c_name, header->c_mtime, header->c_mtime);
+    set_file_times (fd, header->c_name, header->c_atime, header->c_mtime);
 }
 
 void

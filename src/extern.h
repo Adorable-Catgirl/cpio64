@@ -24,7 +24,7 @@
 enum archive_format
 {
   arf_unknown, arf_binary, arf_oldascii, arf_newascii, arf_crcascii,
-  arf_tar, arf_ustar, arf_hpoldascii, arf_hpbinary
+  arf_tar, arf_ustar, arf_hpoldascii, arf_hpbinary, arf_cpio64
 };
 
 extern enum archive_format archive_format;
@@ -109,6 +109,8 @@ void read_in_old_ascii (struct cpio_file_stat *file_hdr, int in_des);
 void read_in_new_ascii (struct cpio_file_stat *file_hdr, int in_des);
 void read_in_binary (struct cpio_file_stat *file_hdr,
 		     struct old_cpio_header *short_hdr, int in_des);
+void read_in_cpio64 (struct cpio_file_stat *file_hdr,
+         struct cpio64_header *long_hdr, int in_des);
 void swab_array (char *arg, int count);
 void process_copy_in (void);
 void long_format (struct cpio_file_stat *file_hdr, char const *link_name);

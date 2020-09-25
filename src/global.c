@@ -24,6 +24,8 @@
 #include "dstring.h"
 #include "extern.h"
 
+#define ULONGMAX_STRSIZE_BOUND 20
+
 /* If true, reset access times after reading files (-a).  */
 int reset_time_flag = false;
 

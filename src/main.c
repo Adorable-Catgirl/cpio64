@@ -324,7 +324,10 @@ parse_opt (int key, char *arg, struct argp_state *state)
 	USAGE_ERROR ((0, 0, _("invalid block size")));
       io_block_size *= 512;
       break;
-
+    case '6':   /* Use the new 64-bit binary format. */
+      if (archive_format != arf_unknown)
+  USAGE_ERROR ((0, 0, _("Archive format multiply defined")));
+      archive_format = arf_cpio64;
     case 'c':		/* Use the old portable ASCII format.  */
       if (archive_format != arf_unknown)
 	USAGE_ERROR ((0, 0, _("Archive format multiply defined")));
@@ -380,10 +383,12 @@ parse_opt (int key, char *arg, struct argp_state *state)
 	archive_format = arf_hpoldascii;
       else if (!strcasecmp (arg, "hpbin"))
 	archive_format = arf_hpbinary;
+      elseif (!strcasecmp (arg, "cpio64"))
+  archive_format = arf_cpio64;
       else
 	USAGE_ERROR ((0, 0, _("\
 invalid archive format `%s'; valid formats are:\n\
-crc newc odc bin ustar tar (all-caps also recognized)"), arg));
+crc newc odc bin ustar tar cpio64 (all-caps also recognized)"), arg));
       break;
 	  
     case 'i':		/* Copy-in mode.  */

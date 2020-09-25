@@ -528,6 +528,69 @@ write_out_binary_header (dev_t rdev,
   return 0;
 }
 
+int
+write_out_cpio64_header (dev_t rdev,
+       struct cpio_file_stat *file_hdr, int out_des)
+{
+  struct cpio64_header long_hdr;
+  long_hdr.c64_magic = 0x79E7;
+  long_hdr.c64_dev = makedev (file_hdr->c_dev_maj, file_hdr->c_dev_min);
+  long_hdr.c64_ino = file_hdr->c_ino & 0xFFFFFFFF;
+  if (long_hdr.c64_ino != file_hdr->c_ino)
+    field_width_warning (file_hdr->c_name, _("inode number"));
+
+  long_hdr.c64_mode = file_hdr->c_mode & 0xFFFF;
+  if (long_hdr.c64_mode != file_hdr->c_mode)
+    field_width_warning (file_hdr->c_name, _("file mode"));
+  
+  long_hdr.c64_uid = file_hdr->c_uid & 0xFFFFFFFF;
+  if (long_hdr.c64_uid != file_hdr->c_uid)
+    field_width_warning (file_hdr->c_name, _("uid"));
+  
+  long_hdr.c64_gid = file_hdr->c_gid & 0xFFFFFFFF;
+  if (long_hdr.c64_gid != file_hdr->c_gid)
+    field_width_warning (file_hdr->c_name, _("gid"));
+  
+  long_hdr.c64_nlink = file_hdr->c_nlink & 0xFFFF;
+  if (long_hdr.c64_nlink != file_hdr->c_nlink)
+    field_width_warning (file_hdr->c_name, _("number of links"));
+
+  long_hdr.c64_rdev = rdev;
+
+  long_hdr.c64_mtime = file_hdr->c_mtime & 0xFFFFFFFFFFFFFFFFllu;
+  if (long_hdr.c64_mtime != file_hdr->c_mtime)
+    field_width_warning (file_hdr->c_name, _("mtime"));
+
+  long_hdr.c64_mtime = file_hdr->c_atime & 0xFFFFFFFFFFFFFFFFllu;
+  if (long_hdr.c64_atime != file_hdr->c_atime)
+    field_width_warning (file_hdr->c_name, _("atime"));
+
+  long_hdr.c64_ctime = file_hdr->c_ctime & 0xFFFFFFFFFFFFFFFFllu;
+  if (long_hdr.c64_ctime != file_hdr->c_ctime)
+    field_width_warning (file_hdr->c_name, _("ctime"));
+
+  long_hdr.c64_otime = file_hdr->c_otime & 0xFFFFFFFFFFFFFFFFllu;
+  if (long_hdr.c64_otime != file_hdr->c_otime)
+    field_width_warning (file_hdr->c_name, _("otime"));
+
+  long_hdr.c64_name = file_hdr->c_namesize & 0xFFFF;
+  if (long_hdr.c_namesize != file_hdr->c_namesize)
+    {
+      char maxbuf[UINTMAX_STRSIZE_BOUND + 1];
+      error (0, 0, _("%s: value %s %s out of allowed range 0..%u"),
+       file_hdr->c_name, _("name size"),
+       STRINGIFY_BIGINT (file_hdr->c_namesize, maxbuf), 0xFFFFu);
+      return 1;
+    }
+  long_hdr.c64_filesize = file_hdr->c_filesize;
+
+  tape_buffered_write ((char *) &long_hdr, out_des, sizeof(struct cpio64_header));
+
+  /* Write file name to output.  */
+  tape_buffered_write (file_hdr->c_name, out_des, file_hdr->c_namesize);
+
+  tape_pad_output (out_des, file_hdr->c_namesize + sizeof(struct cpio64_header));
+}
 
 /* Write out header FILE_HDR, including the file name, to file
    descriptor OUT_DES.  */
@@ -570,11 +633,14 @@ write_out_header (struct cpio_file_stat *file_hdr, int out_des)
       return write_out_binary_header (makedev (file_hdr->c_rdev_maj,
 					       file_hdr->c_rdev_min),
 				      file_hdr, out_des);
-
     case arf_hpbinary:
       hp_compute_dev (file_hdr, &dev, &rdev);
       /* FIXME: dev ignored. Should it be? */
       return write_out_binary_header (rdev, file_hdr, out_des);
+
+    case arf_cpio64:
+      return write_out_cpio64_header(makedev (file_hdr->c_rdev_maj,
+                 file_hdr->c_rdev_min), file_hdr, out_des);
 
     default:
       abort ();
@@ -853,6 +919,9 @@ process_copy_out ()
   file_hdr.c_rdev_maj = 0;
   file_hdr.c_rdev_min = 0;
   file_hdr.c_mtime = 0;
+  file_hdr.c_otime = 0;
+  file_hdr.c_atime = 0;
+  file_hdr.c_ctime = 0;
   file_hdr.c_chksum = 0;
 
   file_hdr.c_filesize = 0;

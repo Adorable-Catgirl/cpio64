@@ -50,6 +50,22 @@ struct old_cpio_header
   unsigned short c_filesizes[2];
 } ATTRIB_PACKED;
 
+struct cpio64_header {
+  unsigned short c64_magic; // 0x79E7
+  unsigned short c64_dev;
+  unsigned int c64_ino;
+  unsigned short c64_mode;
+  unsigned int c64_uid;
+  unsigned int c64_gid;
+  unsigned short c64_rdev;
+  unsigned long long c64_mtime;
+  unsigned short c64_name;
+  unsigned long long c64_filesize;
+  unsigned long long c64_atime;
+  unsigned long long c64_ctime;
+  unsigned long long c64_otime;
+} ATTRIB_PACKED;
+
 # ifdef HAVE_PRAGMA_PACK
 #  pragma pack(1)
 # endif
@@ -118,6 +134,9 @@ struct cpio_file_stat /* Internal representation of a CPIO header */
   gid_t c_gid;
   size_t c_nlink;
   time_t c_mtime;
+  time_t c_ctime;
+  time_t c_atime;
+  time_t c_otime;
   off_t c_filesize;
   unsigned RETTYPE_MAJOR c_dev_maj;
   unsigned RETTYPE_MINOR c_dev_min;
@@ -131,7 +150,7 @@ struct cpio_file_stat /* Internal representation of a CPIO header */
 };
 
 #define CPIO_FILE_STAT_INITIALIZER \
-  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, 0, NULL }
+  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, 0, NULL }
 void cpio_file_stat_init (struct cpio_file_stat *file_hdr);
 void cpio_file_stat_free (struct cpio_file_stat *file_hdr);
 void cpio_set_c_name(struct cpio_file_stat *file_hdr, char *name);

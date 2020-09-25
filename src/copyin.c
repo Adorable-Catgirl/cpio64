@@ -93,7 +93,7 @@ tape_skip_padding (int in_file_des, off_t offset)
 
   if (archive_format == arf_crcascii || archive_format == arf_newascii)
     pad = (4 - (offset % 4)) % 4;
-  else if (archive_format == arf_binary || archive_format == arf_hpbinary)
+  else if (archive_format == arf_binary || archive_format == arf_hpbinary || archive_format == arf_cpio64)
     pad = (2 - (offset % 2)) % 2;
   else if (archive_format == arf_tar || archive_format == arf_ustar)
     pad = (512 - (offset % 512)) % 512;
@@ -872,6 +872,7 @@ from_ascii (char const *where, size_t digs, unsigned logbase)
 /* Return 16-bit integer I with the bytes swapped.  */
 #define swab_short(i) ((((i) << 8) & 0xff00) | (((i) >> 8) & 0x00ff))
 
+
 /* Read the header, including the name of the file, from file
    descriptor IN_DES into FILE_HDR.  */
 
@@ -882,6 +883,7 @@ read_in_header (struct cpio_file_stat *file_hdr, int in_des)
     char str[6];
     unsigned short num;
     struct old_cpio_header old_header;
+    struct cpio64_header cpio64_header;
   } magic;
   long bytes_skipped = 0;	/* Bytes of junk found before magic number.  */
 
@@ -915,6 +917,9 @@ read_in_header (struct cpio_file_stat *file_hdr, int in_des)
 	  else if (tmpbuf.us == 070707
 		   || tmpbuf.us == swab_short ((unsigned short) 070707))
 	    archive_format = arf_binary;
+    else if (tmpbuf.us == 0x79E7
+      || tmpbuf.us == swab_short ((unsigned short) 0x79E7))
+      archive_format = arf_cpio64;
 	  else if (peeked_bytes >= 512
 		   && (check_tar = is_tar_header (tmpbuf.s)))
 	    {
@@ -989,6 +994,17 @@ read_in_header (struct cpio_file_stat *file_hdr, int in_des)
 	  read_in_binary (file_hdr, &magic.old_header, in_des);
 	  break;
 	}
+      if ( (archive_format == arf_cpio64)
+    && (magic.num == 0x79E7
+        || magic.num == swab_short ((unsigned short) 0x79E7)))
+  {
+    /* Having to skip 1 byte because of word alignment is normal.  */
+    if (bytes_skipped > 0)
+      warn_junk_bytes (bytes_skipped);
+    file_hdr->c_magic = 0x79E7;
+    read_in_binary (file_hdr, &magic.cpio64_header, in_des);
+    break;
+  }
       bytes_skipped++;
       memmove (magic.str, magic.str + 1, sizeof (magic.str) - 1);
       tape_buffered_read (magic.str + sizeof (magic.str) - 1, in_des, 1L);
@@ -1185,6 +1201,29 @@ read_in_binary (struct cpio_file_stat *file_hdr,
       default:
 	break;
     }
+}
+
+void
+read_in_cpio64(struct cpio_file_stat *file_hdr,
+    struct cpio64_header *long_hdr,
+    int in_des)
+{
+  file_hdr->c_magic = long_hdr->c_magic;
+  tape_buffered_read (((char *) long_hdr) + 6, in_des,
+          sizeof *long_hdr - 6);
+  file_hdr->c_dev_maj = major (long_hdr->c64_dev);
+  file_hdr->c_dev_min = minor (long_hdr->c64_dev);
+  file_hdr->c_ino = long_hdr->c64_ino;
+  file_hdr->c_mode = long_hdr->c64_mode;
+  file_hdr->c_uid = long_hdr->c64_uid;
+  file_hdr->c_gid = long_hdr->c64_gid;
+  file_hdr->c_nlink = long_hdr->c64_nlink;
+  file_hdr->c_rdev_maj = major (long_hdr->c64_rdev);
+  file_hdr->c_rdev_min = minor (long_hdr->c64_rdev);
+  file_hdr->c_mtime = long_hdr->c64_mtime;
+  file_hdr->c_atime = long_hdr->c64_atime;
+  if (file_hdr->c_namesize % 2)
+    tape_toss_input (in_des, 1L);
 }
 
 /* Exchange the bytes of each element of the array of COUNT shorts
