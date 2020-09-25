@@ -52,20 +52,20 @@ struct old_cpio_header
 } ATTRIB_PACKED;
 
 struct cpio64_header {
-  unsigned short c64_magic; // 0x79E7
-  unsigned short c64_dev;
-  unsigned short c64_mode;
-  unsigned short c64_nlink;
-  unsigned short c64_rdev;
-  unsigned short c64_name;
-  unsigned int c64_ino;
-  unsigned int c64_uid;
-  unsigned int c64_gid;
-  unsigned long long c64_filesize;
-  unsigned long long c64_atime;
-  unsigned long long c64_ctime;
-  unsigned long long c64_otime;
-  unsigned long long c64_mtime;
+  uint16_t c64_magic; // 0x79E7
+  uint16_t c64_dev;
+  uint16_t c64_mode;
+  uint16_t c64_nlink;
+  uint16_t c64_rdev;
+  uint16_t c64_name;
+  uint32_t c64_ino;
+  uint32_t c64_uid;
+  uint32_t c64_gid;
+  uint64_t c64_filesize;
+  uint64_t c64_atime;
+  uint64_t c64_ctime;
+  uint64_t c64_otime;
+  uint64_t c64_mtime;
 } ATTRIB_PACKED;
 
 # ifdef HAVE_PRAGMA_PACK
