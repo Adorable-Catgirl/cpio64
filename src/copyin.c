@@ -1222,6 +1222,8 @@ read_in_cpio64(struct cpio_file_stat *file_hdr,
   file_hdr->c_rdev_min = minor (long_hdr->c64_rdev);
   file_hdr->c_mtime = long_hdr->c64_mtime;
   file_hdr->c_atime = long_hdr->c64_atime;
+  file_hdr->c_filesize = long_hdr->c64_filesize;
+  read_name_from_file (file_hdr, in_des, long_hdr->c64_name);
   if (file_hdr->c_namesize % 2)
     tape_toss_input (in_des, 1L);
 }
