@@ -1202,7 +1202,6 @@ read_in_binary (struct cpio_file_stat *file_hdr,
 	break;
     }
 }
-
 void
 read_in_cpio64(struct cpio_file_stat *file_hdr,
     struct cpio64_header *long_hdr,
@@ -1211,6 +1210,19 @@ read_in_cpio64(struct cpio_file_stat *file_hdr,
   file_hdr->c_magic = long_hdr->c64_magic;
   tape_buffered_read (((char *) long_hdr) + 6, in_des,
           sizeof *long_hdr - 6);
+  char swap = 0;
+  if (file_hdr->c_magic == swab_short ((unsigned short) 0x79E7))
+    {
+      static int c64_warned = 0;
+
+      /* Alert the user that they might have to do byte swapping on
+   the file contents.  */
+      if (c64_warned == 0)
+  {
+    error (0, 0, _("warning: archive header has reverse byte-order"));
+    c64_warned = 1;
+  }
+    }
   file_hdr->c_dev_maj = major (long_hdr->c64_dev);
   file_hdr->c_dev_min = minor (long_hdr->c64_dev);
   file_hdr->c_ino = long_hdr->c64_ino;
