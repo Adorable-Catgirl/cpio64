@@ -22,6 +22,7 @@
 # define _CPIOHDR_H 1
 
 # include <cpio.h>
+# include <stdint.h>
 
 # ifdef HAVE_ATTRIB_PACKED
 #  define ATTRIB_PACKED __attribute__((packed))
@@ -53,18 +54,18 @@ struct old_cpio_header
 struct cpio64_header {
   unsigned short c64_magic; // 0x79E7
   unsigned short c64_dev;
-  unsigned int c64_ino;
   unsigned short c64_mode;
-  unsigned int c64_uid;
-  unsigned int c64_gid;
   unsigned short c64_nlink;
   unsigned short c64_rdev;
-  unsigned long long c64_mtime;
   unsigned short c64_name;
+  unsigned int c64_ino;
+  unsigned int c64_uid;
+  unsigned int c64_gid;
   unsigned long long c64_filesize;
   unsigned long long c64_atime;
   unsigned long long c64_ctime;
   unsigned long long c64_otime;
+  unsigned long long c64_mtime;
 } ATTRIB_PACKED;
 
 # ifdef HAVE_PRAGMA_PACK
