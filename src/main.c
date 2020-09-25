@@ -124,6 +124,8 @@ static struct argp_option options[] = {
    N_("Set the I/O block size to BLOCK-SIZE * 512 bytes"), GRID+1 },
   {NULL, 'c', NULL, 0,
    N_("Use the old portable (ASCII) archive format"), GRID+1 },
+  {NULL, '6', NULL, 0,
+   N_("Use the new cpio64 archive format"), GRID+1 },
   {"dot", 'V', NULL, 0, 
    N_("Print a \".\" for each file processed"), GRID+1 },
   {"io-size", 'C', N_("NUMBER"), 0,
@@ -328,6 +330,8 @@ parse_opt (int key, char *arg, struct argp_state *state)
       if (archive_format != arf_unknown)
   USAGE_ERROR ((0, 0, _("Archive format multiply defined")));
       archive_format = arf_cpio64;
+      break;
+
     case 'c':		/* Use the old portable ASCII format.  */
       if (archive_format != arf_unknown)
 	USAGE_ERROR ((0, 0, _("Archive format multiply defined")));
@@ -383,7 +387,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
 	archive_format = arf_hpoldascii;
       else if (!strcasecmp (arg, "hpbin"))
 	archive_format = arf_hpbinary;
-      elseif (!strcasecmp (arg, "cpio64"))
+      else if (!strcasecmp (arg, "cpio64"))
   archive_format = arf_cpio64;
       else
 	USAGE_ERROR ((0, 0, _("\

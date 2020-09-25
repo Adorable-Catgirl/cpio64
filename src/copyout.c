@@ -574,7 +574,7 @@ write_out_cpio64_header (dev_t rdev,
     field_width_warning (file_hdr->c_name, _("otime"));
 
   long_hdr.c64_name = file_hdr->c_namesize & 0xFFFF;
-  if (long_hdr.c_namesize != file_hdr->c_namesize)
+  if (long_hdr.c64_name != file_hdr->c_namesize)
     {
       char maxbuf[UINTMAX_STRSIZE_BOUND + 1];
       error (0, 0, _("%s: value %s %s out of allowed range 0..%u"),
@@ -590,6 +590,7 @@ write_out_cpio64_header (dev_t rdev,
   tape_buffered_write (file_hdr->c_name, out_des, file_hdr->c_namesize);
 
   tape_pad_output (out_des, file_hdr->c_namesize + sizeof(struct cpio64_header));
+  return 0;
 }
 
 /* Write out header FILE_HDR, including the file name, to file

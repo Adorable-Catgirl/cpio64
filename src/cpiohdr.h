@@ -57,6 +57,7 @@ struct cpio64_header {
   unsigned short c64_mode;
   unsigned int c64_uid;
   unsigned int c64_gid;
+  unsigned short c64_nlink;
   unsigned short c64_rdev;
   unsigned long long c64_mtime;
   unsigned short c64_name;

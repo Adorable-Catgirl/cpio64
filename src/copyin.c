@@ -1002,7 +1002,7 @@ read_in_header (struct cpio_file_stat *file_hdr, int in_des)
     if (bytes_skipped > 0)
       warn_junk_bytes (bytes_skipped);
     file_hdr->c_magic = 0x79E7;
-    read_in_binary (file_hdr, &magic.cpio64_header, in_des);
+    read_in_cpio64 (file_hdr, &magic.cpio64_header, in_des);
     break;
   }
       bytes_skipped++;
@@ -1208,7 +1208,7 @@ read_in_cpio64(struct cpio_file_stat *file_hdr,
     struct cpio64_header *long_hdr,
     int in_des)
 {
-  file_hdr->c_magic = long_hdr->c_magic;
+  file_hdr->c_magic = long_hdr->c64_magic;
   tape_buffered_read (((char *) long_hdr) + 6, in_des,
           sizeof *long_hdr - 6);
   file_hdr->c_dev_maj = major (long_hdr->c64_dev);
